@@ -1,42 +1,76 @@
 const db = require("../config/db");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const twilio = require("twilio");
 
-// ---------------- ADMIN LOGIN ONLY ----------------
-const adminLogin = (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password required" });
-  }
-
-  const query = "SELECT * FROM admin WHERE username = ?";
-  db.query(query, [username], async (err, results) => {
-    if (err) return res.status(500).json({ message: err.message });
-
-    if (results.length === 0) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    const admin = results[0];
-
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-   const token = jwt.sign(
-  { id: admin.id, username: admin.username },
-  process.env.JWT_SECRET, // ✅ use env
-  { expiresIn: "1d" }
+const client = twilio(
+  process.env.TWILIO_SID,
+  process.env.TWILIO_AUTH
 );
 
-    res.json({
-      message: "Admin login successful",
-      token,
-      admin: { id: admin.id, username: admin.username }
-    });
-  });
+// ================= CREATE STAFF =================
+const createStaff = async (req, res) => {
+  const { name, username, password, phone } = req.body;
+
+  if (!name || !username || !password || !phone) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  db.query(
+    "SELECT id FROM staff WHERE username = ?",
+    [username],
+    async (err, exists) => {
+      if (exists.length > 0) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      db.query(
+        `INSERT INTO staff 
+         (name, username, password, phone, is_on_duty, access_requested)
+         VALUES (?, ?, ?, ?, 0, 0)`,
+        [name, username, hashedPassword, phone],
+        async () => {
+          try {
+            await client.messages.create({
+              body: `Parking System Login:
+Username: ${username}
+Password: ${password}`,
+              from: process.env.TWILIO_PHONE,
+              to: phone,
+            });
+          } catch {
+            console.log("SMS failed");
+          }
+
+          res.json({ message: "Staff created & credentials sent" });
+        }
+      );
+    }
+  );
 };
 
-module.exports = { adminLogin };
+// ================= ENABLE / DISABLE STAFF =================
+const toggleStaffAccess = (req, res) => {
+  const { staffId, is_on_duty } = req.body;
+
+  db.query(
+    "UPDATE staff SET is_on_duty = ?, access_requested = 0 WHERE id = ?",
+    [is_on_duty, staffId],
+    () => res.json({ message: "Access updated" })
+  );
+};
+
+// ================= VIEW STAFF =================
+const getAllStaff = (req, res) => {
+  db.query(
+    "SELECT id, name, username, phone, is_on_duty, access_requested FROM staff",
+    (err, result) => res.json(result)
+  );
+};
+
+module.exports = {
+  createStaff,
+  toggleStaffAccess,
+  getAllStaff,
+};

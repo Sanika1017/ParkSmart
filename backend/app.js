@@ -14,9 +14,8 @@ app.use(cors({
   credentials: true
 }));
 
+app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/staff", require("./routes/staffRoutes"));
-app.use("/api/vehicles", require("./routes/vehicleRoutes"));
-app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 
 module.exports = app;
