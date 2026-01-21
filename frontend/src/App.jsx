@@ -1,8 +1,8 @@
 // src/App.jsx
-import { useState, useEffect } from 'react';
-import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
-import StaffDashboard from './pages/StaffDashboard';
+import { useState, useEffect } from "react";
+import Login from "./pages/Login";
+import AdminDashboard from "./pages/AdminDashboard";
+import StaffDashboard from "./pages/StaffDashboard";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -10,34 +10,26 @@ function App() {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // === Development helper: force show login screen on every reload ===
-    // Comment out or remove this block when deploying to production
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    // ================================================================
-
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
+    // ✅ DO NOT clear localStorage on refresh
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
     if (token && role) {
       setIsAuthenticated(true);
       setUserRole(role);
     }
 
-    // Always finish checking quickly (no real server check here)
     setIsChecking(false);
   }, []);
 
   const handleLoginSuccess = (role) => {
     setIsAuthenticated(true);
     setUserRole(role);
-    // Optional: you can also store role here if you want
-    // localStorage.setItem('role', role); // already done in Login.jsx
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
     setIsAuthenticated(false);
     setUserRole(null);
   };
@@ -46,12 +38,12 @@ function App() {
     return (
       <div
         style={{
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.3rem',
-          color: '#555',
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "1.3rem",
+          color: "#555",
         }}
       >
         Loading...
@@ -60,9 +52,9 @@ function App() {
   }
 
   return (
-    <div>
+    <>
       {isAuthenticated ? (
-        userRole === 'admin' ? (
+        userRole === "admin" ? (
           <AdminDashboard onLogout={handleLogout} />
         ) : (
           <StaffDashboard onLogout={handleLogout} />
@@ -70,7 +62,7 @@ function App() {
       ) : (
         <Login onLoginSuccess={handleLoginSuccess} />
       )}
-    </div>
+    </>
   );
 }
 
