@@ -10,8 +10,9 @@ const {
 
 // 🔒 ADMIN ONLY MIDDLEWARE
 const adminOnly = (req, res, next) => {
-  if (req.user.role !== "admin")
+  if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access only" });
+  }
   next();
 };
 

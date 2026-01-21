@@ -16,10 +16,10 @@ const login = (req, res) => {
 
         return res.json({
           token: jwt.sign(
-            { id: admin[0].id, role: "admin" },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-          ),
+  { id: admin.id, role: "admin" },
+  process.env.JWT_SECRET,
+  { expiresIn: "1d" }
+),
           role: "admin",
         });
       }

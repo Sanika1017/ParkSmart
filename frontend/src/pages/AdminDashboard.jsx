@@ -20,26 +20,41 @@ export default function AdminDashboard() {
 
   const token = localStorage.getItem("token");
 
-  const fetchStaff = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/staff/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStaffList(res.data);
-    } catch (err) {
-      setError("Failed to load staff list.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+  if (!token) {
+    window.location.href = "/";
+  }
+}, []);
+
+ const fetchStaff = async () => {
+  try {
+    setLoading(true);
+    setError("");
+
+    const res = await axios.get(
+      "http://localhost:5000/api/admin/staff",
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    setStaffList(Array.isArray(res.data) ? res.data : []);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to load staff list");
+    setStaffList([]); // prevent crash
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchStaff();
   }, []);
 
   // Filter Logic
-  const filteredStaff = staffList.filter((staff) => {
+  const filteredStaff = (staffList || []).filter((staff) => {
     if (activeFilter === "on-duty") return staff.is_on_duty;
     if (activeFilter === "off-duty") return !staff.is_on_duty;
     if (activeFilter === "pending") return staff.access_requested;
@@ -51,11 +66,11 @@ export default function AdminDashboard() {
     setFormMessage("");
     setFormError("");
     try {
-      await axios.post(
-        "http://localhost:5000/api/staff/register",
-        { name, username, password, phone },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+     await axios.post(
+  "http://localhost:5000/api/admin/create-staff",
+  { name, username, password, phone },
+  { headers: { Authorization: `Bearer ${token}` } }
+);
       setFormMessage("Staff created successfully!");
       setName(""); setUsername(""); setPassword(""); setPhone("");
       setTimeout(() => setShowForm(false), 1500);
@@ -65,19 +80,26 @@ export default function AdminDashboard() {
     }
   };
 
-  const toggleDuty = async (id, currentStatus) => {
-    const newStatus = currentStatus ? 0 : 1;
-    try {
-      await axios.put(
-        `http://localhost:5000/api/staff/toggle-duty/${id}`,
-        { is_on_duty: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchStaff();
-    } catch (err) {
-      alert("Failed to update access status");
-    }
-  };
+ const toggleDuty = async (id, currentStatus) => {
+  const newStatus = currentStatus ? 0 : 1;
+
+  try {
+    await axios.put(
+      "http://localhost:5000/api/admin/toggle-access",
+      {
+        staffId: id,
+        is_on_duty: newStatus,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    fetchStaff();
+  } catch (err) {
+    alert("Failed to update access status");
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.clear();
@@ -194,20 +216,18 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td className="px-8 py-6 text-sm font-semibold text-slate-600">@{staff.username}</td>
-                        <td className="px-8 py-6">
-                          {staff.is_on_duty ? (
-                            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">
-                              ACTIVE
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-400 border border-slate-200">
-                              INACTIVE
-                            </span>
-                          )}
-                          {staff.access_requested && (
-                            <span className="ml-2 bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-1 rounded">PENDING REQ</span>
-                          )}
-                        </td>
+                       <td className="px-8 py-6">
+  {staff.is_on_duty ? (
+    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">
+      ACTIVE
+    </span>
+  ) : (
+    <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-400 border border-slate-200">
+      INACTIVE
+    </span>
+  )}
+</td>
+
                         <td className="px-8 py-6 text-right">
                           <button
                             onClick={() => toggleDuty(staff.id, staff.is_on_duty)}
@@ -235,6 +255,18 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 transform">
             <h2 className="text-3xl font-black text-slate-900 mb-2">New Staff</h2>
+            {formMessage && (
+  <div className="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-emerald-700 text-sm font-semibold">
+    ✅ {formMessage}
+  </div>
+)}
+
+{formError && (
+  <div className="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-rose-600 text-sm font-semibold">
+    ❌ {formError}
+  </div>
+)}
+
             <form onSubmit={handleCreateStaff} className="space-y-5">
               <div className="space-y-4">
                 <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none" />
@@ -244,7 +276,17 @@ export default function AdminDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <button type="button" onClick={() => setShowForm(false)} className="py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl">Discard</button>
-                <button type="submit" className="bg-indigo-600 text-white font-bold py-4 rounded-2xl">Register</button>
+               <button
+  onClick={() => {
+    setShowForm(true);
+    setFormMessage("");
+    setFormError("");
+  }}
+  className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl transition-all hover:-translate-y-1"
+>
+  <span className="text-2xl leading-none">+</span> Register New Staff
+</button>
+
               </div>
             </form>
           </div>

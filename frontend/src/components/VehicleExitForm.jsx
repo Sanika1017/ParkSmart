@@ -16,11 +16,15 @@ export default function VehicleExitForm() {
     setFee(null);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/staff/vehicle/exit",
-        { vehicle_number: vehicleNo },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+     const res = await axios.post(
+  "http://localhost:5000/api/staff/vehicle/exit",
+  { vehicleNumber: vehicleNo },   // ✅ FIXED
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
       setFee(res.data.fee);
       setMessage(`Vehicle ${vehicleNo} exit recorded. Fee: ₹${res.data.fee}`);
       setVehicleNo("");

@@ -47,6 +47,9 @@ export default function Login({ onLoginSuccess }) {
     }
   };
 
+  const token = localStorage.getItem("token");
+
+
   const handleRequestAccess = async () => {
     if (!accessDeniedInfo?.staffId) return;
     try {

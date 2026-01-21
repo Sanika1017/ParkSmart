@@ -3,6 +3,7 @@ import axios from "axios";
 
 export default function VehicleEntryForm() {
   const [vehicleNo, setVehicleNo] = useState("");
+  const [vehicleType, setVehicleType] = useState("TWO_WHEELER");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -14,17 +15,15 @@ export default function VehicleEntryForm() {
     setError("");
 
     try {
-   await axios.post(
-  "http://localhost:5000/api/staff/vehicle/entry",
-  { vehicleNumber: vehicleNo },   // ✅ FIXED
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
-      setMessage(`Vehicle ${vehicleNo} entry recorded successfully ✅`);
+      await axios.post(
+        "http://localhost:5000/api/staff/vehicle/entry",
+        { vehicleNumber: vehicleNo, vehicleType },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMessage(`Vehicle ${vehicleNo} entry recorded ✅`);
       setVehicleNo("");
+      setVehicleType("TWO_WHEELER");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to record entry");
     }
@@ -37,14 +36,23 @@ export default function VehicleEntryForm() {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Vehicle Number (e.g. MH12AB1234)"
+          placeholder="Vehicle Number"
           value={vehicleNo}
           onChange={(e) => setVehicleNo(e.target.value.toUpperCase())}
           className="w-full border p-2 rounded mb-4"
           required
         />
 
-        <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+        <select
+          value={vehicleType}
+          onChange={(e) => setVehicleType(e.target.value)}
+          className="w-full border p-2 rounded mb-4"
+        >
+          <option value="TWO_WHEELER">Two Wheeler</option>
+          <option value="FOUR_WHEELER">Four Wheeler</option>
+        </select>
+
+        <button className="w-full bg-blue-600 text-white py-2 rounded">
           Add Entry
         </button>
 
