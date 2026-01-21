@@ -100,15 +100,7 @@ const requestAccess = (req, res) => {
 };
 
 // ================= GET ALL STAFF =================
-const getAllStaff = (req, res) => {
-  db.query(
-    "SELECT id, name, username, phone, is_on_duty, access_requested FROM staff",
-    (err, results) => {
-      if (err) return res.status(500).json({ message: "Server error" });
-      res.json(results);
-    }
-  );
-};
+
 
 // ================= TOGGLE DUTY =================
 const toggleDuty = (req, res) => {
@@ -124,6 +116,32 @@ const toggleDuty = (req, res) => {
     }
   );
 };
+
+
+const getAllStaff = (req, res) => {
+  db.query(
+    "SELECT id, name, username, phone, is_on_duty, access_requested FROM staff",
+    (err, results) => {
+      if (err) return res.status(500).json({ message: "Server error" });
+      res.json(results);
+    }
+  );
+};
+
+// ================= GET ALL VEHICLES =================
+const getAllVehicles = (req, res) => {
+  // Optionally, filter by staff_id if needed: const staffId = req.user.id;
+  const query = `
+    SELECT * FROM vehicles
+    ORDER BY created_at DESC
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ message: "Failed to fetch vehicles" });
+    res.json(results);
+  });
+};
+
 
 // ================= VEHICLE ENTRY =================
 const vehicleEntry = (req, res) => {
@@ -230,6 +248,7 @@ module.exports = {
   loginStaff,
   requestAccess,
   getAllStaff,
+  getAllVehicles ,
   toggleDuty,
   vehicleEntry,
   vehicleExit,

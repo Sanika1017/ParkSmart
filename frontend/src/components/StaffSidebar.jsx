@@ -46,6 +46,25 @@ export default function StaffSidebar({ activePage, setActivePage }) {
           </span>
           <span className="font-semibold text-sm">Vehicle Exit</span>
         </button>
+
+        <button
+  onClick={() => setActivePage("vehicles")}
+  className={`group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 ${
+    activePage === "vehicles"
+      ? "bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+      : "hover:bg-white/5 hover:text-white"
+  }`}
+>
+  <span
+    className={`text-lg transition-transform duration-200 ${
+      activePage === "vehicles" ? "scale-110" : "opacity-70"
+    }`}
+  >
+    📋
+  </span>
+  <span className="font-semibold text-sm">All Vehicles</span>
+</button>
+
       </nav>
 
       {/* Bottom Profile/Footer Section */}

@@ -8,8 +8,10 @@ const {
   requestAccess,
   getAllStaff,
   toggleDuty,
+  getAllVehicles,
   vehicleEntry,   // ← add
-  vehicleExit,    // ← add
+  vehicleExit, 
+     // ← add
 } = require("../controllers/staffController");
 
 const protect = require("../middleware/authMiddleware"); // your auth middleware
@@ -24,6 +26,7 @@ router.get("/all", protect, getAllStaff);
 router.put("/toggle-duty/:id", protect, toggleDuty);
 
 // New vehicle routes (staff only, protected)
+router.get("/vehicles", protect, getAllVehicles);
 router.post("/vehicle/entry", protect, vehicleEntry);
 router.post("/vehicle/exit", protect, vehicleExit);
 
